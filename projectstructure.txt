@@ -9,7 +9,8 @@ TestBlazor/
 │   │   # Pure domain logic, no infra or external libs
 │   │
 │   ├── TestBlazor.Application/         (→ Domain only)
-│   │   # MediatR commands, queries, handlers, validations│   │
+│   │   # MediatR commands, queries, handlers, validations
+│   │
 │   ├── TestBlazor.Infrastructure/      (→ Domain only)
 │   │   # Implements domain interfaces (e.g., IKafkaProducer)
 │   │   # Kafka, EF Core, config, DI registration
@@ -29,49 +30,33 @@ TestBlazor/
 │   └── TestBlazor.BackgroundWorker/    (→ Application + Contracts)
 │       # Kafka consumer background service, maps messages to Application commands
 
+
+
 Dependency Rules Summary
-
     Domain: Pure core, no external dependencies
-
     Application: Depends only on Domain
-
     Infrastructure: Depends only on Domain (implements interfaces)
-
     Contracts: No dependencies (used for DTOs)
-
     API: Depends on Application, Contracts, and Infrastructure only for DI registration (implementations hidden as internal)
-
     BlazorUI (Host): Depends only on BlazorUI.Client
-
     BlazorUI.Client: Depends only on Contracts
-
     BackgroundWorker: Depends on Application and Contracts
 
 NuGet Packages (per project)
-
     Domain: None (or minimal, like System.Collections.Immutable)
-
     Application: MediatR, FluentValidation, Logging.Abstractions
-
     Infrastructure: Confluent.Kafka, EF Core, Configuration, DI, Logging, Newtonsoft.Json
-
     Contracts: None (optional serialization packages)
-
     API: ASP.NET Core MVC, MediatR DI, AutoMapper, Swagger
-
     BlazorUI.Host: Blazor WASM hosting packages
-
     BlazorUI.Client: Blazor WASM packages, HttpClient
-
     BackgroundWorker: Hosting, Confluent.Kafka, MediatR DI, Logging, Configuration
 
 DI & Implementation Note
-
     Reference Infrastructure only from API for DI registration.
-
     Keep infrastructure classes internal to prevent accidental direct usage outside of DI.
-
     Application works through Domain interfaces only.
+
 
 Kafka Docker Compose (simplified)
 
@@ -116,13 +101,8 @@ services:
 Flow Summary (Create Location Topic)
 
     User clicks Create Location button in BlazorUI.Client
-
     Client sends HTTP POST to API with DTO (Contracts)
-
     API maps DTO → Application Command, sends via MediatR
-
     Application validates and creates Domain entity
-
     Application uses Domain interface (e.g., IKafkaProducer) to publish event
-
     Infrastructure implements IKafkaProducer, produces Kafka message on Location topic
