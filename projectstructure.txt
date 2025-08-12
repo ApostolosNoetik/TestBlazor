@@ -152,3 +152,14 @@ services:
       - kafka
       - zookeeper
 
+------- Flow Create Location Topic-------
+DI AddInfrastructure from Infra to API 
+BlazorUI → API → Contracts (DTOs) → Application (Commands, MediatR) → Domain (Interfaces like IKafkaProducer) → Infrastructure (KafkaProducer implementation) → Kafka (Location Topic)
+
+User clicks "Create Location" button in BlazorUI.Client.
+BlazorUI.Client calls the TestBlazor.API endpoint (HTTP POST).
+API maps the incoming DTO (Contracts) to an Application command.
+API sends the command to Application layer via MediatR.
+Application handles the command: validates business rules and creates a Location domain entity.
+Application uses an interface (e.g., IKafkaProducer) defined in Domain to publish the LocationCreated event/message to Kafka (Location topic).
+Infrastructure implements IKafkaProducer and actually produces the Kafka message on the Location topic.

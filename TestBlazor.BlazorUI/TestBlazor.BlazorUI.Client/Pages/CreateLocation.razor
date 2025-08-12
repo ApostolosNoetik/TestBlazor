@@ -1,0 +1,45 @@
+﻿@* TestBlazor.BlazorUI/TestBlazor.BlazorUI.Client/Pages/CreateLocation.razor*@
+@page "/create-location"
+
+@using TestBlazor.Contracts
+@inject HttpClient Http
+
+<h3>Create Location</h3>
+
+<p>Name: @locationName</p>
+<p>Latitude: @latitude</p>
+<p>Longitude: @longitude</p>
+
+<button @onclick="OnCreateLocation">Create Location</button>
+
+<p>@message</p>
+
+@code {
+    private string locationName = "";
+    private double latitude;
+    private double longitude;
+    private string message = "";
+
+    private async Task OnCreateLocation()
+    {
+        var random = new Random();
+
+        locationName = $"Location-{random.Next(1000, 9999)}";
+        latitude = random.NextDouble() * 180 - 90;     
+        longitude = random.NextDouble() * 360 - 180;
+
+        var dto = new LocationCreateDto
+        {
+            Name = locationName,
+            Latitude = latitude,
+            Longitude = longitude
+        };
+
+        var response = await Http.PostAsJsonAsync("api/locations", dto);
+
+        if (response.IsSuccessStatusCode)
+            message = $"Location '{locationName}' created successfully.";
+        else
+            message = response.ToString();
+    }
+}
