@@ -1,122 +1,85 @@
-﻿TestBlazor/
+﻿Project Structure & Dependencies
+
+TestBlazor/
 │
 ├── src/
-│   ├── TestBlazor.Domain/                (Class Library - No external deps)
+│   ├── TestBlazor.Domain/              (No dependencies)
 │   │   # Entities, Value Objects, Domain Events
-│   │   # Interfaces: IRepository<T>, IKafkaProducer, IKafkaConsumer, IUnitOfWork, etc.
-│   │   # Domain services (pure business logic)
+│   │   # Interfaces (e.g., IKafkaProducer, IRepository)
+│   │   # Pure domain logic, no infra or external libs
 │   │
-│   ├── TestBlazor.Application/           (Class Library - MediatR, FluentValidation, Logging Abstractions)
-│   │   → TestBlazor.Domain
-│   │   # Application services, commands, queries, MediatR handlers
+│   ├── TestBlazor.Application/         (→ Domain only)
+│   │   # MediatR commands, queries, handlers, validations│   │
+│   ├── TestBlazor.Infrastructure/      (→ Domain only)
+│   │   # Implements domain interfaces (e.g., IKafkaProducer)
+│   │   # Kafka, EF Core, config, DI registration
 │   │
-│   ├── TestBlazor.Infrastructure/        (Class Library - Kafka, EFCore, Configuration, Logging, Newtonsoft.Json)
-│   │   → TestBlazor.Domain
-│   │   # Implements Domain interfaces, persistence, Kafka, DI registrations
+│   ├── TestBlazor.Contracts/           (No dependencies)
+│   │   # DTOs, Integration Events, Enums for API-client communication
 │   │
-│   ├── TestBlazor.Contracts/             (Class Library - DTOs, Integration Events, Enums, JSON serialization)
-│   │   # No dependencies
+│   ├── TestBlazor.API/                 (→ Application + Contracts + Infrastructure for DI only)
+│   │   # REST controllers, MediatR injection, mapping Contracts ↔ Application
 │   │
-│   ├── TestBlazor.API/                   (ASP.NET Core Web API)
-│   │   → TestBlazor.Application
-│   │   → TestBlazor.Contracts
-│   │   # Exposes REST endpoints, maps Contracts ↔ Domain models, calls Application via MediatR
+│   ├── TestBlazor.BlazorUI/            (→ BlazorUI.Client only)
+│   │   # Host for Blazor WASM client app
 │   │
-│   ├── TestBlazor.BlazorUI/              (ASP.NET Core Host for Blazor WebAssembly)
-│   │   → TestBlazor.BlazorUI.Client
-│   │   # Hosts Blazor client, serves static files, optional API proxies
+│   ├── TestBlazor.BlazorUI.Client/     (→ Contracts only)
+│   │   # Blazor WASM app, calls API endpoints using DTOs
 │   │
-│   ├── TestBlazor.BlazorUI.Client/       (Blazor WebAssembly App)
-│   │   → TestBlazor.Contracts
-│   │   # Runs in browser, calls API endpoints
-│   │
-│   └── TestBlazor.BackgroundWorker/       (Worker Service / Console App - Kafka Consumer)
-│       → TestBlazor.Application
-│       → TestBlazor.Contracts
-│       # Background service consuming Kafka, sending commands to Application .............i want strict ddd rules to apply to this small project, are this dependancies correct, int he communication rules correct and reflec the following, or i have mistake somewhere Domain → nothing
-(Pure core, no dependencies)
+│   └── TestBlazor.BackgroundWorker/    (→ Application + Contracts)
+│       # Kafka consumer background service, maps messages to Application commands
 
+Dependency Rules Summary
 
-------- PROJECT DEPENDANCIES -------
+    Domain: Pure core, no external dependencies
 
-Application → Domain only
-(Business logic, interfaces from Domain only)
+    Application: Depends only on Domain
 
-Infrastructure → Domain only
-(Implements Domain interfaces, persistence, Kafka)
+    Infrastructure: Depends only on Domain (implements interfaces)
 
-Contracts → nothing
-(DTOs and enums only, no dependencies)
+    Contracts: No dependencies (used for DTOs)
 
-API → Application + Contracts
-(Exposes endpoints, maps Contracts ↔ Domain models, sends commands/queries to Application)
+    API: Depends on Application, Contracts, and Infrastructure only for DI registration (implementations hidden as internal)
 
-BlazorUI (Host) → BlazorUI.Client only
-(Hosts the client app, serves static files; no direct Domain/Application/Contracts references)
+    BlazorUI (Host): Depends only on BlazorUI.Client
 
-BlazorUI.Client → Contracts only
-(Runs in browser, calls API via HTTP, uses DTOs from Contracts)
+    BlazorUI.Client: Depends only on Contracts
 
-BackgroundWorker → Application + Contracts
-(Consumes Kafka messages, maps to Application commands, uses Contracts for DTOs) 
+    BackgroundWorker: Depends on Application and Contracts
 
+NuGet Packages (per project)
 
+    Domain: None (or minimal, like System.Collections.Immutable)
 
-------- ADD NUGGET PACKAGES -------
-TestBlazor.Domain
-No external packages (pure domain)
-Possibly System.Collections.Immutable (optional, for value objects)
-TestBlazor.Application
-MediatR
-FluentValidation
-Microsoft.Extensions.Logging.Abstractions
+    Application: MediatR, FluentValidation, Logging.Abstractions
 
-TestBlazor.Infrastructure
-Confluent.Kafka (Kafka client)
-Microsoft.EntityFrameworkCore (and relevant provider, e.g. SqlServer, Npgsql)
-Microsoft.Extensions.Configuration (for config)
-Microsoft.Extensions.DependencyInjection (DI)
-Microsoft.Extensions.Logging
-Newtonsoft.Json (for serialization)
+    Infrastructure: Confluent.Kafka, EF Core, Configuration, DI, Logging, Newtonsoft.Json
 
-TestBlazor.Contracts
-No packages needed, unless for serialization attributes you want (e.g., System.Text.Json or Newtonsoft.Json), but usually none needed here
+    Contracts: None (optional serialization packages)
 
-TestBlazor.API
-Microsoft.AspNetCore.App (includes MVC, controllers, routing)
-MediatR.Extensions.Microsoft.DependencyInjection
-AutoMapper.Extensions.Microsoft.DependencyInjection (optional, for mapping Contracts ↔ Domain)
-Microsoft.Extensions.Logging
-Swashbuckle.AspNetCore (optional, Swagger)
+    API: ASP.NET Core MVC, MediatR DI, AutoMapper, Swagger
 
-TestBlazor.BlazorUI (Host)
-Microsoft.AspNetCore.Components.WebAssembly.Server (host for WASM)
-Microsoft.Extensions.Logging
+    BlazorUI.Host: Blazor WASM hosting packages
 
-TestBlazor.BlazorUI.Client
-Microsoft.AspNetCore.Components.WebAssembly
-Microsoft.AspNetCore.Components.WebAssembly.Http
-Microsoft.Extensions.Http
-System.Net.Http.Json
-Possibly MediatR client packages if using MediatR on client (optional)
+    BlazorUI.Client: Blazor WASM packages, HttpClient
 
-TestBlazor.BackgroundWorker
-Microsoft.Extensions.Hosting (worker service)
-Confluent.Kafka
-MediatR.Extensions.Microsoft.DependencyInjection
-Microsoft.Extensions.Logging
-Microsoft.Extensions.Configuration
+    BackgroundWorker: Hosting, Confluent.Kafka, MediatR DI, Logging, Configuration
 
-------- ADD Infrastructure to API (debatable, needs more research)-------
-Add Infrastructure project reference to API for DI registration; keep implementation classes internal to enforce layering.
+DI & Implementation Note
 
-------- ADD Docker compose zookeeper, kafka, kafka-ui-------
+    Reference Infrastructure only from API for DI registration.
+
+    Keep infrastructure classes internal to prevent accidental direct usage outside of DI.
+
+    Application works through Domain interfaces only.
+
+Kafka Docker Compose (simplified)
+
 version: '3.8'
 
 services:
   zookeeper:
     image: confluentinc/cp-zookeeper:latest
-    container_name: zookeeper
     ports:
       - 2181:2181
     environment:
@@ -125,7 +88,6 @@ services:
 
   kafka:
     image: confluentinc/cp-kafka:latest
-    container_name: kafka
     depends_on:
       - zookeeper
     ports:
@@ -141,7 +103,6 @@ services:
 
   kafka-ui:
     image: provectuslabs/kafka-ui:latest
-    container_name: kafka-ui
     ports:
       - 8080:8080
     environment:
@@ -152,14 +113,16 @@ services:
       - kafka
       - zookeeper
 
-------- Flow Create Location Topic-------
-DI AddInfrastructure from Infra to API 
-BlazorUI → API → Contracts (DTOs) → Application (Commands, MediatR) → Domain (Interfaces like IKafkaProducer) → Infrastructure (KafkaProducer implementation) → Kafka (Location Topic)
+Flow Summary (Create Location Topic)
 
-User clicks "Create Location" button in BlazorUI.Client.
-BlazorUI.Client calls the TestBlazor.API endpoint (HTTP POST).
-API maps the incoming DTO (Contracts) to an Application command.
-API sends the command to Application layer via MediatR.
-Application handles the command: validates business rules and creates a Location domain entity.
-Application uses an interface (e.g., IKafkaProducer) defined in Domain to publish the LocationCreated event/message to Kafka (Location topic).
-Infrastructure implements IKafkaProducer and actually produces the Kafka message on the Location topic.
+    User clicks Create Location button in BlazorUI.Client
+
+    Client sends HTTP POST to API with DTO (Contracts)
+
+    API maps DTO → Application Command, sends via MediatR
+
+    Application validates and creates Domain entity
+
+    Application uses Domain interface (e.g., IKafkaProducer) to publish event
+
+    Infrastructure implements IKafkaProducer, produces Kafka message on Location topic
