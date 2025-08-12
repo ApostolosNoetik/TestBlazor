@@ -36,6 +36,9 @@
 │       # Background service consuming Kafka, sending commands to Application .............i want strict ddd rules to apply to this small project, are this dependancies correct, int he communication rules correct and reflec the following, or i have mistake somewhere Domain → nothing
 (Pure core, no dependencies)
 
+
+------- PROJECT DEPENDANCIES -------
+
 Application → Domain only
 (Business logic, interfaces from Domain only)
 
@@ -56,3 +59,50 @@ BlazorUI.Client → Contracts only
 
 BackgroundWorker → Application + Contracts
 (Consumes Kafka messages, maps to Application commands, uses Contracts for DTOs) 
+
+
+
+------- ADD NUGGET PACKAGES -------
+TestBlazor.Domain
+No external packages (pure domain)
+Possibly System.Collections.Immutable (optional, for value objects)
+TestBlazor.Application
+MediatR
+FluentValidation
+Microsoft.Extensions.Logging.Abstractions
+
+TestBlazor.Infrastructure
+Confluent.Kafka (Kafka client)
+Microsoft.EntityFrameworkCore (and relevant provider, e.g. SqlServer, Npgsql)
+Microsoft.Extensions.Configuration (for config)
+Microsoft.Extensions.DependencyInjection (DI)
+Microsoft.Extensions.Logging
+Newtonsoft.Json (for serialization)
+
+TestBlazor.Contracts
+No packages needed, unless for serialization attributes you want (e.g., System.Text.Json or Newtonsoft.Json), but usually none needed here
+
+TestBlazor.API
+Microsoft.AspNetCore.App (includes MVC, controllers, routing)
+MediatR.Extensions.Microsoft.DependencyInjection
+AutoMapper.Extensions.Microsoft.DependencyInjection (optional, for mapping Contracts ↔ Domain)
+Microsoft.Extensions.Logging
+Swashbuckle.AspNetCore (optional, Swagger)
+
+TestBlazor.BlazorUI (Host)
+Microsoft.AspNetCore.Components.WebAssembly.Server (host for WASM)
+Microsoft.Extensions.Logging
+
+TestBlazor.BlazorUI.Client
+Microsoft.AspNetCore.Components.WebAssembly
+Microsoft.AspNetCore.Components.WebAssembly.Http
+Microsoft.Extensions.Http
+System.Net.Http.Json
+Possibly MediatR client packages if using MediatR on client (optional)
+
+TestBlazor.BackgroundWorker
+Microsoft.Extensions.Hosting (worker service)
+Confluent.Kafka
+MediatR.Extensions.Microsoft.DependencyInjection
+Microsoft.Extensions.Logging
+Microsoft.Extensions.Configuration
