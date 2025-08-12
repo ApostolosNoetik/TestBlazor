@@ -15,6 +15,7 @@
   <ItemGroup>
     <ProjectReference Include="..\TestBlazor.Application\TestBlazor.Application.csproj" />
     <ProjectReference Include="..\TestBlazor.Contracts\TestBlazor.Contracts.csproj" />
+    <ProjectReference Include="..\TestBlazor.Infrastructure\TestBlazor.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>
