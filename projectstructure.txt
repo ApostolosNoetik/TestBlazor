@@ -1,0 +1,58 @@
+﻿TestBlazor/
+│
+├── src/
+│   ├── TestBlazor.Domain/                (Class Library - No external deps)
+│   │   # Entities, Value Objects, Domain Events
+│   │   # Interfaces: IRepository<T>, IKafkaProducer, IKafkaConsumer, IUnitOfWork, etc.
+│   │   # Domain services (pure business logic)
+│   │
+│   ├── TestBlazor.Application/           (Class Library - MediatR, FluentValidation, Logging Abstractions)
+│   │   → TestBlazor.Domain
+│   │   # Application services, commands, queries, MediatR handlers
+│   │
+│   ├── TestBlazor.Infrastructure/        (Class Library - Kafka, EFCore, Configuration, Logging, Newtonsoft.Json)
+│   │   → TestBlazor.Domain
+│   │   # Implements Domain interfaces, persistence, Kafka, DI registrations
+│   │
+│   ├── TestBlazor.Contracts/             (Class Library - DTOs, Integration Events, Enums, JSON serialization)
+│   │   # No dependencies
+│   │
+│   ├── TestBlazor.API/                   (ASP.NET Core Web API)
+│   │   → TestBlazor.Application
+│   │   → TestBlazor.Contracts
+│   │   # Exposes REST endpoints, maps Contracts ↔ Domain models, calls Application via MediatR
+│   │
+│   ├── TestBlazor.BlazorUI/              (ASP.NET Core Host for Blazor WebAssembly)
+│   │   → TestBlazor.BlazorUI.Client
+│   │   # Hosts Blazor client, serves static files, optional API proxies
+│   │
+│   ├── TestBlazor.BlazorUI.Client/       (Blazor WebAssembly App)
+│   │   → TestBlazor.Contracts
+│   │   # Runs in browser, calls API endpoints
+│   │
+│   └── TestBlazor.BackgroundWorker/       (Worker Service / Console App - Kafka Consumer)
+│       → TestBlazor.Application
+│       → TestBlazor.Contracts
+│       # Background service consuming Kafka, sending commands to Application .............i want strict ddd rules to apply to this small project, are this dependancies correct, int he communication rules correct and reflec the following, or i have mistake somewhere Domain → nothing
+(Pure core, no dependencies)
+
+Application → Domain only
+(Business logic, interfaces from Domain only)
+
+Infrastructure → Domain only
+(Implements Domain interfaces, persistence, Kafka)
+
+Contracts → nothing
+(DTOs and enums only, no dependencies)
+
+API → Application + Contracts
+(Exposes endpoints, maps Contracts ↔ Domain models, sends commands/queries to Application)
+
+BlazorUI (Host) → BlazorUI.Client only
+(Hosts the client app, serves static files; no direct Domain/Application/Contracts references)
+
+BlazorUI.Client → Contracts only
+(Runs in browser, calls API via HTTP, uses DTOs from Contracts)
+
+BackgroundWorker → Application + Contracts
+(Consumes Kafka messages, maps to Application commands, uses Contracts for DTOs) 
