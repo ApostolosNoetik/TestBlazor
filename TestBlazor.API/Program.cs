@@ -1,5 +1,3 @@
-//TestBlazor.API/Program.cs
-
 using System.Reflection;
 using TestBlazor.Infrastructure;
 
@@ -11,12 +9,10 @@ builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 
-// Register MediatR handlers from Application assembly
 builder.Services.AddMediatR(cfg =>
     cfg.RegisterServicesFromAssembly(Assembly.Load("TestBlazor.Application"))
 );
 
-// Configure CORS to allow Blazor client
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowBlazorDevClient", policy =>
@@ -35,11 +31,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
 app.UseCors("AllowBlazorDevClient");
-
 app.UseAuthorization();
-
 app.MapControllers();
 
 app.Run();

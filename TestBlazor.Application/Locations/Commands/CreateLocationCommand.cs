@@ -25,7 +25,7 @@ namespace TestBlazor.Application.Locations.Commands
                 CreatedAt = DateTime.UtcNow
             };
 
-            await _kafkaProducer.ProduceAsync("location-topic", locationEvent);
+            await _kafkaProducer.ProduceAsync("location-updates", locationEvent);
 
             return Unit.Value;
         }

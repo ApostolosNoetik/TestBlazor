@@ -1,5 +1,4 @@
-﻿// TestBlazor.Infrastructure/Kafka/KafkaProducer.cs
-using Confluent.Kafka;
+﻿using Confluent.Kafka;
 using Newtonsoft.Json;
 using TestBlazor.Domain.Interfaces;
 
@@ -18,7 +17,18 @@ namespace TestBlazor.Infrastructure.Kafka
         public async Task ProduceAsync<T>(string topic, T message)
         {
             var json = JsonConvert.SerializeObject(message);
-            await _producer.ProduceAsync(topic, new Message<Null, string> { Value = json });
+
+            var tcs = new TaskCompletionSource<DeliveryResult<Null, string>>();
+
+            _producer.Produce(topic, new Message<Null, string> { Value = json }, r =>
+            {
+                if (r.Error.IsError)
+                    tcs.SetException(new KafkaException(r.Error));
+                else
+                    tcs.SetResult(r);
+            });
+
+            await tcs.Task;
         }
 
         public void Dispose()
