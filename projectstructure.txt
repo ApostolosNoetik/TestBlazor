@@ -14,14 +14,16 @@ TestBlazor/
 │   ├── TestBlazor.Infrastructure/      (→ Domain only)
 │   │   # Implements domain interfaces (e.g., IKafkaProducer)
 │   │   # Kafka, EF Core, config, DI registration
+│   │                                                                   var bootstrapServers = config.GetValue<string>("Kafka:BootstrapServers");
 │   │
 │   ├── TestBlazor.Contracts/           (No dependencies)
 │   │   # DTOs, Integration Events, Enums for API-client communication
 │   │
-│   ├── TestBlazor.API/                 (→ Application + Contracts + Infrastructure for DI only)
+│   ├── TestBlazor.API/                 (→ Application + Contracts + Infrastructure for DI only)   "applicationUrl": "https://localhost:7001;http://localhost:5001",
 │   │   # REST controllers, MediatR injection, mapping Contracts ↔ Application
+│   │                                                                   appsettings.json "Kafka": { "BootstrapServers": "localhost:9092" } 
 │   │
-│   ├── TestBlazor.BlazorUI/            (→ BlazorUI.Client only)
+│   ├── TestBlazor.BlazorUI/            (→ BlazorUI.Client only)       "applicationUrl": "https://localhost:7002;http://localhost:5002",
 │   │   # Host for Blazor WASM client app
 │   │
 │   ├── TestBlazor.BlazorUI.Client/     (→ Contracts only)
@@ -58,36 +60,51 @@ DI & Implementation Note
     Application works through Domain interfaces only.
 
 
-Kafka Docker Compose (simplified)
+Kafka Docker Compose
 
 version: '3.8'
 
+networks:
+  kafka-net:
+
 services:
   zookeeper:
-    image: confluentinc/cp-zookeeper:latest
+    image: confluentinc/cp-zookeeper:6.2.0
+    container_name: zookeeper
+    restart: unless-stopped
     ports:
       - 2181:2181
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
+    networks:
+      - kafka-net
 
   kafka:
-    image: confluentinc/cp-kafka:latest
+    image: confluentinc/cp-kafka:6.2.0
+    container_name: kafka
+    restart: unless-stopped
     depends_on:
       - zookeeper
     ports:
-      - 9092:9092
-      - 29092:29092
+      - 9092:9092         # Host access port
+      - 29092:29092       # Internal Docker network port
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:29092,PLAINTEXT_HOST://localhost:9092
+      # PLAINTEXT for internal Docker network (kafka:29092)
+      # PLAINTEXT_HOST for host access (localhost:9092)
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
       KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:29092,PLAINTEXT_HOST://0.0.0.0:9092
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+    networks:
+      - kafka-net
 
   kafka-ui:
-    image: provectuslabs/kafka-ui:latest
+    image: provectuslabs/kafka-ui:v0.7.1
+    container_name: kafka-ui
+    restart: unless-stopped
     ports:
       - 8080:8080
     environment:
@@ -97,6 +114,8 @@ services:
     depends_on:
       - kafka
       - zookeeper
+    networks:
+      - kafka-net
 
 Flow Summary (Create Location Topic)
 
