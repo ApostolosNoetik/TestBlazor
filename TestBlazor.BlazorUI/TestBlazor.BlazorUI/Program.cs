@@ -1,4 +1,4 @@
-using TestBlazor.BlazorUI.Client.Pages;
+//TestBlazor.BlazorUI/TestBlazor.BlazorUI/Program.cs
 using TestBlazor.BlazorUI.Components;
 
 var builder = WebApplication.CreateBuilder(args);

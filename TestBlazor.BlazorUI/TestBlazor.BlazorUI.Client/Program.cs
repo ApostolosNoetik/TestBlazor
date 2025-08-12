@@ -1,4 +1,4 @@
-//C:\Repos\TestBlazor\TestBlazor.BlazorUI\TestBlazor.BlazorUI.Client\Program.cs
+//C:/Repos/TestBlazor/TestBlazor.BlazorUI/TestBlazor.BlazorUI.Client/Program.cs
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
